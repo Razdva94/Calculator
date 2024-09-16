@@ -47,7 +47,8 @@ function startCalculator() {
         }
         catch (error) {
             if (error instanceof Error) {
-                throw new Error(`${error.message}`);
+                console.log(`${error.message}`);
+                startCalculator();
             }
             else {
                 throw new Error('An unknown error occurred');

@@ -7,6 +7,7 @@ export declare class Calculator {
     calculate(expression: string): number | void;
     private processBrackets;
     private findResult;
+    private handleUnaryMinus;
     private searchCycle;
     private calculateOperation;
     private findOrderOfOperations;

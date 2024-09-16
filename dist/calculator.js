@@ -39,6 +39,7 @@ class Calculator {
         return this.findResult(tokens);
     }
     findResult(tokens) {
+        this.handleUnaryMinus(tokens);
         const tokensWithPriority = this.searchCycle(tokens, 2);
         const finalTokens = this.searchCycle(tokensWithPriority, 1);
         if (finalTokens.includes('(') || finalTokens.includes(')')) {
@@ -49,6 +50,19 @@ class Calculator {
         }
         const result = Number(finalTokens[0]);
         return result;
+    }
+    handleUnaryMinus(tokens) {
+        for (let i = 0; i < tokens.length; i++) {
+            if (tokens[i] === '-' && (i === 0 || tokens[i - 1] === '(')) {
+                const number = Number(tokens[i + 1]);
+                if (!isNaN(number)) {
+                    tokens.splice(i, 2, (-number).toString());
+                }
+                else {
+                    throw new Error('Ошибка: введены некорректные данные');
+                }
+            }
+        }
     }
     searchCycle(tokens, priority) {
         for (let i = 0; i < tokens.length; i++) {
