@@ -5,17 +5,26 @@ import substraction from './operators/substraction';
 import multiplication from './operators/multiplication';
 import division from './operators/division';
 import { IOperation } from './interfaces/operation.interface';
+import exponentiation from './operators/exponentiation';
 
 describe('Calculator', () => {
   let calculator: Calculator;
 
   beforeEach(() => {
     const parser = new ExpressionParser();
-    const operations = new Map<string, IOperation>();
-    operations.set('+', addition);
-    operations.set('-', substraction);
-    operations.set('*', multiplication);
-    operations.set('/', division);
+    const operations = new Map<
+      string,
+      { operation: { priority: number; action: IOperation } }
+    >();
+    operations.set('+', { operation: { action: addition, priority: 1 } });
+    operations.set('-', { operation: { action: substraction, priority: 1 } });
+    operations.set('*', {
+      operation: { action: multiplication, priority: 2 },
+    });
+    operations.set('/', { operation: { action: division, priority: 2 } });
+    operations.set('^', {
+      operation: { action: exponentiation, priority: 3 },
+    });
 
     calculator = new Calculator(parser, operations);
   });
@@ -33,6 +42,10 @@ describe('Calculator', () => {
   it('should correctly calculate multiplication', () => {
     const result = calculator.calculate('4 * 3');
     expect(result).toBe(12);
+  });
+  it('should correctly calculate exponentiation', () => {
+    const result = calculator.calculate('2 ^ 3');
+    expect(result).toBe(8);
   });
 
   it('should correctly calculate division', () => {

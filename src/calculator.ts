@@ -3,9 +3,18 @@ import { IOperation } from './interfaces/operation.interface';
 
 export class Calculator {
   private parser: ExpressionParser;
-  private operations: Map<string, IOperation>;
+  private operations: Map<
+    string,
+    { operation: { priority: number; action: IOperation } }
+  >;
 
-  constructor(parser: ExpressionParser, operations: Map<string, IOperation>) {
+  constructor(
+    parser: ExpressionParser,
+    operations: Map<
+      string,
+      { operation: { priority: number; action: IOperation } }
+    >,
+  ) {
     this.parser = parser;
     this.operations = operations;
   }
@@ -14,7 +23,6 @@ export class Calculator {
     try {
       const tokens = this.parser.parse(expression);
       const result = this.processBrackets(tokens);
-      console.log('result: ', result);
       return result;
     } catch (error) {
       if (error instanceof Error) {
@@ -40,15 +48,15 @@ export class Calculator {
       const result = this.findResult(innerTokens);
       tokens.splice(openIndex, closeIndex - openIndex + 1, result.toString());
     }
-    return this.findResult(tokens);
+    const result = this.findResult(tokens);
+    console.log('result :', result);
+    return result;
   }
 
   private findResult(tokens: string[]) {
-    console.log(tokens);
     this.handleUnaryMinus(tokens);
-    console.log(tokens);
-    const tokensWithPriority = this.searchCycle(tokens, 2);
-    const finalTokens = this.searchCycle(tokensWithPriority, 1);
+    const maxPriority = this.findMaxPriority(tokens);
+    const finalTokens = this.searchCycle(tokens, maxPriority);
     if (finalTokens.includes('(') || finalTokens.includes(')')) {
       throw new Error('Ошибка парсинга выражения: несбалансированные скобки');
     }
@@ -59,11 +67,26 @@ export class Calculator {
     return result;
   }
 
+  private findPriority(operator: string) {
+    return this.operations.get(operator)?.operation.priority || null;
+  }
+
+  private findMaxPriority(tokens: string[]) {
+    const priorityArr: number[] = [];
+    tokens.forEach((token) => {
+      if (this.operations.has(token)) {
+        const priority = this.findPriority(token);
+        priorityArr.push(priority);
+      }
+    });
+    const maxPriority = Math.max(...priorityArr);
+    return maxPriority;
+  }
+
   private handleUnaryMinus(tokens: string[]) {
     for (let i = 0; i < tokens.length; i++) {
       if (tokens[i] === '-' && (i === 0 || tokens[i - 1] === '(')) {
         const number = Number(tokens[i + 1]);
-        console.log(number);
         if (!isNaN(number)) {
           tokens.splice(i, 2, (-number).toString());
         } else {
@@ -73,10 +96,12 @@ export class Calculator {
     }
   }
 
-  private searchCycle(tokens: string[], priority: number) {
+  private searchCycle(tokens: string[], maxPriority: number) {
+    if (maxPriority === 0) {
+      return tokens;
+    }
     for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-      if (this.findOrderOfOperations(token) === priority) {
+      if (this.operations.get(tokens[i])?.operation.priority === maxPriority) {
         const firstOperand = Number(tokens[i - 1]);
         const secondOperand = Number(tokens[i + 1]);
         const operator = tokens[i];
@@ -92,7 +117,7 @@ export class Calculator {
         i = 0;
       }
     }
-    return tokens;
+    return this.searchCycle(tokens, maxPriority - 1);
   }
 
   private calculateOperation(
@@ -100,23 +125,10 @@ export class Calculator {
     secondOperand: number,
     operator: string,
   ) {
-    const operation = this.operations.get(operator);
+    const operation = this.operations.get(operator).operation;
     if (!operation) {
       throw new Error(`Ошибка: неизвестная операция '${operator}'`);
     }
-    return operation.execute(firstOperand, secondOperand);
-  }
-
-  private findOrderOfOperations(operator: string) {
-    switch (operator) {
-      case '+':
-      case '-':
-        return 1;
-      case '*':
-      case '/':
-        return 2;
-      default:
-        return 0;
-    }
+    return operation.action.execute(firstOperand, secondOperand);
   }
 }
