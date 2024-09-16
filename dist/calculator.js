@@ -39,7 +39,9 @@ class Calculator {
         return this.findResult(tokens);
     }
     findResult(tokens) {
+        console.log(tokens);
         this.handleUnaryMinus(tokens);
+        console.log(tokens);
         const tokensWithPriority = this.searchCycle(tokens, 2);
         const finalTokens = this.searchCycle(tokensWithPriority, 1);
         if (finalTokens.includes('(') || finalTokens.includes(')')) {
@@ -55,6 +57,7 @@ class Calculator {
         for (let i = 0; i < tokens.length; i++) {
             if (tokens[i] === '-' && (i === 0 || tokens[i - 1] === '(')) {
                 const number = Number(tokens[i + 1]);
+                console.log(number);
                 if (!isNaN(number)) {
                     tokens.splice(i, 2, (-number).toString());
                 }

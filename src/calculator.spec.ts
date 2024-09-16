@@ -44,6 +44,10 @@ describe('Calculator', () => {
     const result = calculator.calculate('2 + (3 * 2)');
     expect(result).toBe(8);
   });
+  it('should correctly calculate expression with brackets', () => {
+    const result = calculator.calculate('- 2 - (3 * 2)');
+    expect(result).toBe(-8);
+  });
 
   it('should correctly calculate complex expression with nested brackets', () => {
     const result = calculator.calculate('2 + (3 * (2 + 1)) / 3');
