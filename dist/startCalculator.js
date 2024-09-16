@@ -8,6 +8,7 @@ const addition_1 = require("./operators/addition");
 const substraction_1 = require("./operators/substraction");
 const multiplication_1 = require("./operators/multiplication");
 const division_1 = require("./operators/division");
+const exponentiation_1 = require("./operators/exponentiation");
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -36,10 +37,15 @@ function startCalculator() {
         }
         const parser = new parser_1.ExpressionParser();
         const operations = new Map();
-        operations.set('+', addition_1.default);
-        operations.set('-', substraction_1.default);
-        operations.set('*', multiplication_1.default);
-        operations.set('/', division_1.default);
+        operations.set('+', { operation: { action: addition_1.default, priority: 1 } });
+        operations.set('-', { operation: { action: substraction_1.default, priority: 1 } });
+        operations.set('*', {
+            operation: { action: multiplication_1.default, priority: 2 },
+        });
+        operations.set('/', { operation: { action: division_1.default, priority: 2 } });
+        operations.set('^', {
+            operation: { action: exponentiation_1.default, priority: 3 },
+        });
         const calculator = new calculator_1.Calculator(parser, operations);
         try {
             calculator.calculate(expression);

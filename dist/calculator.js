@@ -10,7 +10,6 @@ class Calculator {
         try {
             const tokens = this.parser.parse(expression);
             const result = this.processBrackets(tokens);
-            console.log('result: ', result);
             return result;
         }
         catch (error) {
@@ -39,11 +38,9 @@ class Calculator {
         return this.findResult(tokens);
     }
     findResult(tokens) {
-        console.log(tokens);
         this.handleUnaryMinus(tokens);
-        console.log(tokens);
-        const tokensWithPriority = this.searchCycle(tokens, 2);
-        const finalTokens = this.searchCycle(tokensWithPriority, 1);
+        const maxPriority = this.findMaxPriority(tokens);
+        const finalTokens = this.searchCycle(tokens, maxPriority);
         if (finalTokens.includes('(') || finalTokens.includes(')')) {
             throw new Error('Ошибка парсинга выражения: несбалансированные скобки');
         }
@@ -51,7 +48,22 @@ class Calculator {
             throw new Error('Ошибка: введены некорректные данные');
         }
         const result = Number(finalTokens[0]);
+        console.log('result :', result);
         return result;
+    }
+    findPriority(operator) {
+        return this.operations.get(operator)?.operation.priority || null;
+    }
+    findMaxPriority(tokens) {
+        const priorityArr = [];
+        tokens.forEach((token) => {
+            if (this.operations.has(token)) {
+                const priority = this.findPriority(token);
+                priorityArr.push(priority);
+            }
+        });
+        const maxPriority = Math.max(...priorityArr);
+        return maxPriority;
     }
     handleUnaryMinus(tokens) {
         for (let i = 0; i < tokens.length; i++) {
@@ -67,10 +79,12 @@ class Calculator {
             }
         }
     }
-    searchCycle(tokens, priority) {
+    searchCycle(tokens, maxPriority) {
+        if (maxPriority === 0) {
+            return tokens;
+        }
         for (let i = 0; i < tokens.length; i++) {
-            const token = tokens[i];
-            if (this.findOrderOfOperations(token) === priority) {
+            if (this.operations.get(tokens[i])?.operation.priority === maxPriority) {
                 const firstOperand = Number(tokens[i - 1]);
                 const secondOperand = Number(tokens[i + 1]);
                 const operator = tokens[i];
@@ -82,26 +96,14 @@ class Calculator {
                 i = 0;
             }
         }
-        return tokens;
+        return this.searchCycle(tokens, maxPriority - 1);
     }
     calculateOperation(firstOperand, secondOperand, operator) {
-        const operation = this.operations.get(operator);
+        const operation = this.operations.get(operator).operation;
         if (!operation) {
             throw new Error(`Ошибка: неизвестная операция '${operator}'`);
         }
-        return operation.execute(firstOperand, secondOperand);
-    }
-    findOrderOfOperations(operator) {
-        switch (operator) {
-            case '+':
-            case '-':
-                return 1;
-            case '*':
-            case '/':
-                return 2;
-            default:
-                return 0;
-        }
+        return operation.action.execute(firstOperand, secondOperand);
     }
 }
 exports.Calculator = Calculator;
