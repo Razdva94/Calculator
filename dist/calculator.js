@@ -35,7 +35,9 @@ class Calculator {
             const result = this.findResult(innerTokens);
             tokens.splice(openIndex, closeIndex - openIndex + 1, result.toString());
         }
-        return this.findResult(tokens);
+        const result = this.findResult(tokens);
+        console.log('result :', result);
+        return result;
     }
     findResult(tokens) {
         this.handleUnaryMinus(tokens);
@@ -48,7 +50,6 @@ class Calculator {
             throw new Error('Ошибка: введены некорректные данные');
         }
         const result = Number(finalTokens[0]);
-        console.log('result :', result);
         return result;
     }
     findPriority(operator) {
@@ -69,7 +70,6 @@ class Calculator {
         for (let i = 0; i < tokens.length; i++) {
             if (tokens[i] === '-' && (i === 0 || tokens[i - 1] === '(')) {
                 const number = Number(tokens[i + 1]);
-                console.log(number);
                 if (!isNaN(number)) {
                     tokens.splice(i, 2, (-number).toString());
                 }
